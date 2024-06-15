@@ -9,7 +9,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.AsyncTask
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
@@ -28,7 +28,7 @@ import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.model.EventAttendee
 import com.google.api.services.calendar.model.EventDateTime
 import com.google.api.services.calendar.model.EventReminder
-import kotlinx.android.synthetic.main.activity_main.*
+import id.yuana.google.calendar.demo.databinding.ActivityMainBinding
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.IOException
@@ -45,12 +45,16 @@ class MainActivity : AppCompatActivity() {
         const val PREF_ACCOUNT_NAME = "accountName"
     }
 
+    var _binding : ActivityMainBinding? = null
+    val binding : ActivityMainBinding
+        get() = _binding!!
     var mCredential: GoogleAccountCredential? = null
     var mProgress: ProgressDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        _binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initCredentials()
         initView()
     }
@@ -59,17 +63,18 @@ class MainActivity : AppCompatActivity() {
         mProgress = ProgressDialog(this)
         mProgress!!.setMessage("Loading...")
 
-        btnCalendar.setOnClickListener {
-            btnCalendar.isEnabled = false
-            txtOut.text = ""
+        binding.btnCalendar.setOnClickListener {
+            binding.btnCalendar.isEnabled = false
+            binding.txtOut.text = ""
             getResultsFromApi()
-            btnCalendar.isEnabled = true
+            binding.btnCalendar.isEnabled = true
         }
 
-        btnCreateEvent.setOnClickListener {
+        binding.btnCreateEvent.setOnClickListener {
             createCalendarEvent()
         }
     }
+
 
     private fun createCalendarEvent() {
         // Refer to the Java quickstart on how to setup the environment:
@@ -137,7 +142,7 @@ class MainActivity : AppCompatActivity() {
         } else if (mCredential!!.selectedAccountName == null) {
             chooseAccount()
         } else if (!isDeviceOnline()) {
-            txtOut.text = "No network connection available."
+            binding.txtOut.text = "No network connection available."
         } else {
             MakeRequestTask(mCredential!!).execute()
         }
@@ -173,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             REQUEST_GOOGLE_PLAY_SERVICES -> if (resultCode != Activity.RESULT_OK) {
-                txtOut.text = "This app requires Google Play Services. Please install " + "Google Play Services on your device and relaunch this app."
+                binding.txtOut.text = "This app requires Google Play Services. Please install " + "Google Play Services on your device and relaunch this app."
             } else {
                 getResultsFromApi()
             }
@@ -228,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                 this@MainActivity,
                 connectionStatusCode,
                 REQUEST_GOOGLE_PLAY_SERVICES)
-        dialog.show()
+        dialog?.show()
     }
 
     private fun isDeviceOnline(): Boolean {
@@ -333,17 +338,17 @@ class MainActivity : AppCompatActivity() {
 
 
         override fun onPreExecute() {
-            txtOut.text = ""
+            binding.txtOut.text = ""
             mProgress!!.show()
         }
 
         override fun onPostExecute(output: MutableList<String>?) {
             mProgress!!.hide()
             if (output == null || output.size == 0) {
-                txtOut.text = "No results returned."
+                binding.txtOut.text = "No results returned."
             } else {
                 output.add(0, "Data retrieved using the Google Calendar API:")
-                txtOut.text = (TextUtils.join("\n", output))
+                binding.txtOut.text = (TextUtils.join("\n", output))
             }
         }
 
@@ -359,10 +364,10 @@ class MainActivity : AppCompatActivity() {
                             (mLastError as UserRecoverableAuthIOException).intent,
                             MainActivity.REQUEST_AUTHORIZATION)
                 } else {
-                    txtOut.text = "The following error occurred:\n" + mLastError!!.message
+                    binding.txtOut.text = "The following error occurred:\n" + mLastError!!.message
                 }
             } else {
-                txtOut.text = "Request cancelled."
+                binding.txtOut.text = "Request cancelled."
             }
         }
     }
